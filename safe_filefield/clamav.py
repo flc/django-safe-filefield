@@ -1,3 +1,5 @@
+import logging
+
 from urllib.parse import urlparse
 
 import clamd
@@ -5,6 +7,9 @@ from django.conf import settings
 from django.utils.functional import SimpleLazyObject
 
 from safe_filefield import default_settings
+
+
+logger = logging.getLogger(__name__)
 
 
 def get_scanner(socket, timeout=None):
@@ -36,7 +41,12 @@ scanner = SimpleLazyObject(_get_default_scanner)
 def scan_file(f):
     _pos = f.tell()
     f.seek(0)
-    status, virus_name = scanner.instream(f)['stream']
+    try:
+        status, virus_name = scanner.instream(f)['stream']
+    except clamd.ConnectionError as e:
+        logger.warning(str(e))
+        return 'OK', ''
     f.seek(_pos)
 
+    logger.debug('clamav result for file %s | status: %s', f, (status, virus_name))
     return status, virus_name

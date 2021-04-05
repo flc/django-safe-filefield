@@ -1,3 +1,4 @@
+import logging
 import mimetypes
 import os
 
@@ -7,6 +8,9 @@ from django.utils.translation import ugettext_lazy as _
 
 from . import clamav
 from .utils import detect_content_type
+
+
+logger = logging.getLogger(__name__)
 
 
 @deconstructible
@@ -35,8 +39,7 @@ class FileExtensionValidator(object):
                 code=self.code,
                 params={
                     'extension': extension,
-                    'allowed_extensions': ', '.join(
-                        self.allowed_extensions)
+                    'allowed_extensions': ', '.join(self.allowed_extensions)
                 }
             )
 
@@ -46,7 +49,6 @@ class FileContentTypeValidator:
         'File has invalid content-type. '
         'Maybe file extension is equal to file content?'
     )
-
     code = 'invalid_content_type'
 
     def __init__(self, message=None, code=None):
@@ -60,21 +62,34 @@ class FileContentTypeValidator:
         __, ext = os.path.splitext(file.name)
 
         detected_content_type = detect_content_type(file)
+        logger.debug('detected content type: %s | file: %s', detected_content_type, file)
 
         if getattr(file, 'content_type', None) is not None:
+            file_content_type = file.content_type
+            logger.debug('file content type: %s | file: %s', file_content_type, file)
+            exts_for_detected_content_type = mimetypes.guess_all_extensions(detected_content_type)
+            exts_for_file_content_type = mimetypes.guess_all_extensions(file_content_type)
+            logger.debug(
+                'file content type: %s | exts for detected content type: %s | '
+                'exts_for_file_content_type: %s | file: %s',
+                file_content_type,
+                exts_for_detected_content_type,
+                exts_for_file_content_type,
+                file
+            )
             is_valid_content_type = bool(
                 (
-                    ext in mimetypes.guess_all_extensions(detected_content_type)
-                    and ext in mimetypes.guess_all_extensions(file.content_type)
+                    ext in exts_for_detected_content_type
+                    and ext in exts_for_file_content_type
                 ) or (
                     detected_content_type == 'application/CDFV2-unknown'
-                    and file.content_type == mimetypes.guess_type('.doc')
+                    and file_content_type == mimetypes.guess_type('.doc')
                     and ext == "doc"
                 )
             )
-            params={
+            params = {
                 'extension': ext,
-                'content_type': file.content_type,
+                'content_type': file_content_type,
                 'detected_content_type': detected_content_type
             }
         else:
@@ -86,7 +101,7 @@ class FileContentTypeValidator:
                     and ext == "doc"
                 )
             )
-            params={
+            params = {
                 'extension': ext,
                 'content_type': None,
                 'detected_content_type': detected_content_type
