@@ -4,7 +4,7 @@ import os
 
 from django.core.exceptions import ValidationError
 from django.utils.deconstruct import deconstructible
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from . import clamav
 from .utils import detect_content_type
@@ -33,7 +33,8 @@ class FileExtensionValidator(object):
     def __call__(self, value):
         extension = os.path.splitext(value.name)[1][1:].lower()
 
-        if self.allowed_extensions is not None and extension not in self.allowed_extensions:
+        if (self.allowed_extensions is not None) \
+                and (extension not in self.allowed_extensions):
             raise ValidationError(
                 self.message,
                 code=self.code,
@@ -59,6 +60,9 @@ class FileContentTypeValidator:
             self.code = code
 
     def __call__(self, file):
+        if hasattr(file, '_get_file'):
+            file = file._get_file()
+
         __, ext = os.path.splitext(file.name)
 
         detected_content_type = detect_content_type(file)
@@ -78,14 +82,11 @@ class FileContentTypeValidator:
                 file
             )
             is_valid_content_type = bool(
-                (
-                    ext in exts_for_detected_content_type
-                    and ext in exts_for_file_content_type
-                ) or (
-                    detected_content_type == 'application/CDFV2-unknown'
-                    and file_content_type == mimetypes.guess_type('.doc')
-                    and ext == "doc"
-                )
+                (ext in exts_for_detected_content_type
+                 and ext in exts_for_file_content_type
+                 ) or (detected_content_type == 'application/CDFV2-unknown'
+                       and file_content_type == mimetypes.guess_type('.doc')
+                       and ext == "doc")
             )
             params = {
                 'extension': ext,
@@ -94,19 +95,15 @@ class FileContentTypeValidator:
             }
         else:
             is_valid_content_type = bool(
-                (
-                    ext in mimetypes.guess_all_extensions(detected_content_type)
-                ) or (
-                    detected_content_type == 'application/CDFV2-unknown'
-                    and ext == "doc"
-                )
+                (ext in exts_for_detected_content_type)
+                or (detected_content_type == 'application/CDFV2-unknown'
+                    and ext == "doc")
             )
             params = {
                 'extension': ext,
                 'content_type': None,
                 'detected_content_type': detected_content_type
             }
-
 
         if not is_valid_content_type:
             raise ValidationError(
