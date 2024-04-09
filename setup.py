@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 setup(
     name='django-safe-filefield',
-    version='0.3.1',
+    version='1.0.0',
     url='https://github.com/mixkorshun/django-safe-filefield',
     description='Secure file field, which allows you to '
                 'restrict uploaded file extensions.',
@@ -27,17 +27,27 @@ setup(
     packages=find_packages(exclude=['*.tests.*', '*.tests']),
 
     classifiers=[
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
-        'Environment :: Web Environment',
-        'Framework :: Django',
         'Topic :: Security',
-        'Natural Language :: English',
         'License :: OSI Approved :: MIT License',
+
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
+
+        'Framework :: Django',
+        'Framework :: Django :: 1.11',
+        'Framework :: Django :: 1.11',
+        'Framework :: Django :: 2',
+        'Framework :: Django :: 2.2',
+        'Framework :: Django :: 3',
+        'Framework :: Django :: 3.2',
+        'Framework :: Django :: 4',
+        'Framework :: Django :: 4.2',
     ],
 )
